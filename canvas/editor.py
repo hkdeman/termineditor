@@ -20,7 +20,7 @@ class Editor:
         self.navigator = None
         self.cursor_x = self.cursor_y = self.last_key_pressed = 0
         self.exit = False
-        self.data = [""]
+        self.data = ["asdasdjaskdjlkasjdlkasjdlkjaskldjlaskjdklasjdsad"*6,"asdjksajdkashdksad"*2,"sadaskdjhasjkdhasjkdhkjashdkjashdkjashd0"*5,"sadhsahdkjasdhjksad"]
 
     def analyser(self):
         if self.last_key_pressed == curses.KEY_UP:
@@ -33,11 +33,13 @@ class Editor:
                 self.cursor_y = self.cursor_y - 1 if self.cursor_y > 0 else 0
             if self.data[self.cursor_y]=="":
                 self.cursor_x=0
-            elif len(self.data[self.cursor_y]) < len(self.data[self.cursor_y+1]):
+            elif len(self.data[self.cursor_y]) < len(self.data[self.cursor_y+1]) and self.cursor_x > len(self.data[self.cursor_y]):
                 # to go to the back of line if the upper line doesn't have many characters
                 self.cursor_x = len(self.data[self.cursor_y])
+                self.relative_x = self.cursor_x - self.canvas_width + 1 if self.cursor_x > self.canvas_width else 0
+                self.update_existing_data()
         elif self.last_key_pressed == curses.KEY_DOWN:
-            if len(self.data)-1>self.cursor_y:
+            if len(self.data)-1 > self.cursor_y:
                 if self.cursor_y - self.relative_y == self.canvas_height:
                     self.relative_y += 1
                     self.cursor_y = self.cursor_y + 1 if self.cursor_y < len(self.data)-1 else len(self.data)-1
@@ -47,31 +49,53 @@ class Editor:
                     self.cursor_y = self.cursor_y + 1 if self.cursor_y < len(self.data)-1 else len(self.data)-1
                     if self.data[self.cursor_y]=="":
                         self.cursor_x=0
-                    elif len(self.data[self.cursor_y]) < len(self.data[self.cursor_y-1]):
+                    elif len(self.data[self.cursor_y]) < len(self.data[self.cursor_y-1]) and self.cursor_x > len(self.data[self.cursor_y]):
                         # to go to the back of line if the lower line doesn't have many characters
                         self.cursor_x = len(self.data[self.cursor_y])
+                        self.relative_x = self.cursor_x - self.canvas_width + 1 if self.cursor_x > self.canvas_width else 0
+                        self.update_existing_data()
         elif self.last_key_pressed == curses.KEY_LEFT:
             if self.cursor_x > 0:
                 self.cursor_x-=1
             elif self.cursor_y>0:
                 # go to back of the last line if there is line above and trying to move left
-                self.cursor_y-=1
+                self.cursor_y -= 1
                 self.cursor_x = len(self.data[self.cursor_y])
+                self.relative_x = self.cursor_x - self.canvas_width + 1 if self.cursor_x > self.canvas_width else 0
+                self.update_existing_data()
+
+            # check when it comes to more than the window size in x axis
+            if self.cursor_x - self.relative_x == self.canvas_width - 4 and self.relative_x > 0:
+                self.relative_x -= 1
+                self.update_existing_data()
+
         elif self.last_key_pressed == curses.KEY_RIGHT:
             if self.cursor_x < len(self.data[self.cursor_y]):
                 self.cursor_x+=1
             elif self.cursor_y < len(self.data)-1:
                 self.cursor_y+=1
                 self.cursor_x=0
-        elif 32 <= self.last_key_pressed <= 126:
-            y, x = self.cursor_y+self.origin_y-self.relative_y, self.cursor_x+self.origin_x+BAR_OFFSET
-            self.data[self.cursor_y]= self.data[self.cursor_y][:self.cursor_x]+chr(self.last_key_pressed)+self.data[self.cursor_y][self.cursor_x:]
+                self.relative_x=0
+
+            if self.cursor_x - self.relative_x == self.canvas_width - 1:
+                self.relative_x += 1
+
             self.update_existing_data()
+
+        elif 32 <= self.last_key_pressed <= 126:
+            y, x = self.cursor_y+self.origin_y-self.relative_y, self.cursor_x+self.origin_x+BAR_OFFSET-self.relative_x
+            self.data[self.cursor_y]= self.data[self.cursor_y][:self.cursor_x]+chr(self.last_key_pressed)+self.data[self.cursor_y][self.cursor_x:]
+
+            # when add more characters, it needs to simulate a horizontal scroll
+            if self.cursor_x - self.relative_x == self.canvas_width-1:
+                self.relative_x+=1
+            self.update_existing_data()
+
             # update the cursors
             self.cursor_x += 1
         elif self.last_key_pressed == ENTER:
             # shorten the line of cursor at y
-            y,x = self.cursor_y+self.origin_y-self.relative_y,self.origin_x+self.cursor_x
+            y,x = self.cursor_y+self.origin_y-self.relative_y,self.origin_x+self.cursor_x-self.relative_x
             buffer_end_line = self.data[self.cursor_y][self.cursor_x:]
 
             self.data[self.cursor_y] = self.data[self.cursor_y][:self.cursor_x]
@@ -83,10 +107,11 @@ class Editor:
                 self.relative_y += 1
             self.cursor_y += 1
             self.cursor_x = 0
+            self.relative_x = 0
             self.update_existing_data()
             self.update_number_toolbar()
         elif self.last_key_pressed == curses.KEY_BACKSPACE:
-            if self.cursor_x==0:
+            if self.cursor_x == 0:
                 if len(self.data[self.cursor_y]) > 0:
                     self.data[self.cursor_y] = self.data[self.cursor_y][:-1]
                 elif self.cursor_y > 0:
@@ -96,12 +121,20 @@ class Editor:
                         self.relative_y -= 1
                     self.cursor_y = self.cursor_y - 1 if self.cursor_y > 0 else 0
                     self.cursor_x = len(self.data[self.cursor_y])
+                    self.relative_x = self.cursor_x - self.canvas_width+1 if self.cursor_x > self.canvas_width else 0
                     self.update_number_toolbar()
                     self.update_existing_data()
             else:
-                self.data[self.cursor_y] = self.data[self.cursor_y][:-1]
-                self.std_scr.addch(self.cursor_y-self.relative_y + self.origin_y, self.cursor_x -self.relative_x + self.origin_x, " ")
-                self.cursor_x -= 1
+                self.std_scr.addstr(self.cursor_y+self.origin_y, self.origin_x+BAR_OFFSET," "*self.canvas_width)
+                self.data[self.cursor_y] = self.data[self.cursor_y][:self.cursor_x][:-1] \
+                                           + self.data[self.cursor_y][self.cursor_x:]
+                self.std_scr.addstr(self.cursor_y+self.origin_y, self.origin_x+BAR_OFFSET,
+                                    self.data[self.cursor_y][self.relative_x:self.relative_x+self.canvas_width])
+                self.cursor_x = self.cursor_x - 1 if self.cursor_x > 0 else 0
+
+            if self.cursor_x - self.relative_x <= self.canvas_width-4 and self.relative_x > 0:
+                self.relative_x -= 1
+                self.update_existing_data()
         elif self.last_key_pressed == CTRL_X:
             import sys
             sys.exit(0)
@@ -136,7 +169,7 @@ class Editor:
         height_index = 0
         line_num = self.relative_y
         while line_num < len(self.data):
-            self.std_scr.addstr(line_num+y,x,self.data[line_num])
+            self.std_scr.addstr(line_num+y,x,self.data[line_num][self.relative_x:self.relative_x+self.canvas_width])
             line_num += 1
             if height_index == self.canvas_height:
                 break
