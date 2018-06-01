@@ -24,8 +24,7 @@ def check_navigation(navigator,last_key_pressed,curses):
     elif last_key_pressed == CTRL_B:
         navigator.set_current_state(navigator.context["Explorer"])
     elif last_key_pressed == CTRL_E:
-        navigator.context["Editor"].reset()
-        navigator.set_current_state(navigator.context["Editor"])
+        navigator.set_current_state(navigator.context["Manager"])
     elif last_key_pressed == CTRL_T:
         navigator.set_current_state(navigator.context["Menu"])
 

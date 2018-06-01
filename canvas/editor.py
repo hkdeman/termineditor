@@ -6,21 +6,24 @@ import curses
 CTRL_X = 24
 CTRL_D = 4
 BAR_OFFSET = 1
+VERTICAL_START_POS = 5
+
 
 class Editor:
-    def __init__(self,std_scr):
+    def __init__(self,std_scr, file_name):
         self.std_scr = std_scr
+        self.file_name = file_name
         self.is_global_state = False
         self.number_toolbar_width = 6
         self.height, self.width = self.std_scr.getmaxyx()
-        self.origin_x, self.origin_y = self.width//4+self.number_toolbar_width, 4
+        self.origin_x, self.origin_y = self.width//4+self.number_toolbar_width, VERTICAL_START_POS
         self.relative_x, self.relative_y = 0, 0
         self.canvas_height = self.height-1-self.origin_y-1
         self.canvas_width = self.width-2-self.origin_x-1
         self.navigator = None
         self.cursor_x = self.cursor_y = self.last_key_pressed = 0
         self.exit = False
-        self.data = ["asdasdjaskdjlkasjdlkasjdlkjaskldjlaskjdklasjdsad"*6,"asdjksajdkashdksad"*2,"sadaskdjhasjkdhasjkdhkjashdkjashdkjashd0"*5,"sadhsahdkjasdhjksad"]
+        self.data = [""]
 
     def analyser(self):
         if self.last_key_pressed == curses.KEY_UP:
@@ -212,7 +215,8 @@ class Editor:
         self.exit = True
 
     def display(self):
-        rectangle(self.std_scr,3,self.width//4,self.height-1,self.width-2)
+        rectangle(self.std_scr,self.origin_y-1,self.origin_x-self.number_toolbar_width-1,
+                  self.height-1,self.width-2)
         self.std_scr.refresh()
         if self.is_global_state:
             self.edit()
@@ -223,7 +227,8 @@ class Editor:
     def set_exit(self,exit):
         self.exit = exit
 
-    def reset(self):
-        if self.cursor_y == -1:
-            self.cursor_y=0
-        self.set_exit(False)
+    def __len__(self):
+        return len(self.file_name)
+
+    def get_file_name(self):
+        return self.file_name
