@@ -64,6 +64,8 @@ class Editor:
                 # go to back of the last line if there is line above and trying to move left
                 self.cursor_y -= 1
                 self.cursor_x = len(self.data[self.cursor_y])
+                if self.cursor_y - self.relative_y <= self.canvas_height-3 and self.relative_y >0:
+                    self.relative_y -= 1
                 self.relative_x = self.cursor_x - self.canvas_width + 1 if self.cursor_x > self.canvas_width else 0
                 self.update_existing_data()
 
@@ -79,6 +81,8 @@ class Editor:
                 self.cursor_y+=1
                 self.cursor_x=0
                 self.relative_x=0
+                if self.cursor_y - self.relative_y == self.canvas_height+1:
+                    self.relative_y+=1
 
             if self.cursor_x - self.relative_x == self.canvas_width - 1:
                 self.relative_x += 1
@@ -104,10 +108,12 @@ class Editor:
             self.data[self.cursor_y] = self.data[self.cursor_y][:self.cursor_x]
             self.data = self.data[:self.cursor_y + 1] + [buffer_end_line] + self.data[self.cursor_y + 1:]
             self.std_scr.addstr(y, x + 1, " " * len(buffer_end_line))
-            self.std_scr.addstr(y + 1, self.origin_x + BAR_OFFSET, self.data[self.cursor_y + 1])
+            if self.cursor_y-self.relative_y<self.canvas_height-1:
+                self.std_scr.addstr(y + 1, self.origin_x + BAR_OFFSET, self.data[self.cursor_y + 1])
 
             if self.cursor_y - self.relative_y == self.canvas_height:
                 self.relative_y += 1
+
             self.cursor_y += 1
             self.cursor_x = 0
             self.relative_x = 0

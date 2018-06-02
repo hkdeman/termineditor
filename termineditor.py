@@ -7,6 +7,7 @@ class Termineditor:
         self.context = context
         self.current_state = current_state
         self.context["Manager"].set_navigator(self)
+        self.context["Explorer"].set_navigator(self)
         self.last_came_from = None
 
     def set_current_state(self,current_state):

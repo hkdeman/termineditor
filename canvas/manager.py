@@ -69,3 +69,6 @@ class Manager:
 
     def update_global_status(self, state):
         self.is_global_state = state
+
+    def get_all_editor_names(self):
+        return [self.all_editors[self.current_editor].get_file_name()]+[self.all_editors[editor].get_file_name() for editor in self.all_editors if editor!=self.current_editor]
