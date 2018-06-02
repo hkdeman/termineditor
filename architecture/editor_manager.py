@@ -31,21 +31,28 @@ class EditorManager:
     def run(self):
         pass
 
+    def clear_content(self):
+        for i in range(self.origin_y+2,self.canvas_height):
+            self.std_scr.addstr(i, self.origin_x," "*(self.canvas_width-2))
+
     def show_title(self):
         self.std_scr.addstr(self.origin_y, self.origin_x+1, "Open Editors")
         self.std_scr.addstr(self.origin_y, self.canvas_width-3, "▼")
         rectangle(self.std_scr, self.origin_y - 1, self.origin_x - 1, self.origin_y + 1, self.width // 4 - 4)
 
     def show_content(self):
+        self.clear_content()
         self.all_editors = {}
-        for i, editor in enumerate(self.navigator.context["Manager"].get_all_editor_names()):
+        index, editors = self.navigator.context["Manager"].get_all_editor_names()
+        for i, editor in enumerate(editors):
             self.all_editors[i] = editor
         rectangle(self.std_scr, self.origin_y+1,self.origin_x-1,self.canvas_height, self.canvas_width)
         for i, editor in self.all_editors.items():
-            if i==0:
+            if i == index:
                 self.std_scr.addstr(self.origin_y + i + 2, self.origin_x + 1, editor, curses.color_pair(2))
             else:
                 self.std_scr.addstr(self.origin_y+i+2, self.origin_x+1, editor)
+        self.std_scr.refresh()
 
     def display(self):
         self.show_title()

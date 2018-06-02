@@ -15,11 +15,11 @@ def main(std_scr):
     last_key_pressed = 0
     files = []
     if len(sys.argv)>1:
-        files.extend(sys.argv[1:])
+        files.extend(list(set(sys.argv[1:])))
     else:
         # could add a welcome page
         files.extend(["Untitled.txt"])
-    context = {"Menu": Menu(std_scr),"Explorer": Explorer(std_scr),"Manager": Manager(std_scr,files)}
+    context = {"Menu": Menu(std_scr),"Explorer": Explorer(std_scr),"Manager": Manager(std_scr, files)}
     navigator = Termineditor(std_scr=std_scr,context=context,current_state=context["Manager"])
 
     while last_key_pressed!=CTRL_X:

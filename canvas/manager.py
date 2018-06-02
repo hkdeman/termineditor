@@ -13,16 +13,16 @@ class Manager:
         self.origin_x, self.origin_y = self.width//4-1, VERTICAL_START_POS
         self.editors_length = len(files)
         self.all_editors = {}
-        for i, file in enumerate(files):
-            self.all_editors[i] = Editor(self.std_scr, file)
+        for i, file_path in enumerate(files):
+            self.all_editors[i] = Editor(self.std_scr, file_path)
         self.all_editors_display_names = dict((y.get_file_name(),x) for x,y in self.all_editors.items())
-        self.current_editor = 0 if self.editors_length!=0 else None
+        self.current_editor = 0 if self.editors_length != 0 else None
         self.navigator = None
         self.is_global_state = False
         curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_WHITE)
 
     def right(self):
-        self.current_editor = self.current_editor + 1 if self.current_editor < self.editors_length else max(self.all_editors.keys())
+        self.current_editor = self.current_editor + 1 if self.current_editor < self.editors_length-1 else self.editors_length-1
 
     def left(self):
         self.current_editor = self.current_editor - 1 if self.current_editor > 0 else 0
@@ -36,7 +36,11 @@ class Manager:
     def run(self):
         pass
 
+    def clear_headers(self):
+        self.std_scr.addstr(self.origin_y-1,self.origin_x," "*(self.width-1-self.origin_x))
+        self.std_scr.addstr(self.origin_y,self.origin_x," "*(self.width-1-self.origin_x))
     def show_all_headers(self):
+        self.clear_headers()
         total_sum_x = 0
         active_total_sum_x = 0
         for i, file_name in enumerate(self.all_editors_display_names):
@@ -66,9 +70,18 @@ class Manager:
 
     def set_navigator(self, navigator):
         self.navigator = navigator
-
+        for editor in self.all_editors.values():
+            editor.set_navigator(self.navigator)
     def update_global_status(self, state):
         self.is_global_state = state
 
     def get_all_editor_names(self):
-        return [self.all_editors[self.current_editor].get_file_name()]+[self.all_editors[editor].get_file_name() for editor in self.all_editors if editor!=self.current_editor]
+        return self.current_editor, [self.all_editors[editor].get_file_name() for editor in self.all_editors]
+
+    def reset(self):
+        for editor in self.all_editors.values():
+            editor.set_exit(False)
+
+    def reset_and_display(self):
+        self.reset()
+        self.display()

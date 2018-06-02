@@ -1,18 +1,20 @@
 from curses.textpad import rectangle, Textbox
 from helper.functions import CTRL_T, CTRL_B, LEFT, ENTER, UP
 import curses
+from pathlib import Path
 
 
 CTRL_X = 24
 CTRL_D = 4
 BAR_OFFSET = 1
 VERTICAL_START_POS = 5
-
+ALT_RIGHT = 558
+ALT_LEFT = 543
 
 class Editor:
-    def __init__(self,std_scr, file_name):
+    def __init__(self,std_scr, file_path):
         self.std_scr = std_scr
-        self.file_name = file_name
+        self.file_path = Path(file_path)
         self.is_global_state = False
         self.number_toolbar_width = 6
         self.height, self.width = self.std_scr.getmaxyx()
@@ -23,7 +25,10 @@ class Editor:
         self.navigator = None
         self.cursor_x = self.cursor_y = self.last_key_pressed = 0
         self.exit = False
-        self.data = [""]
+        if self.file_path.exists():
+            self.data = open(self.file_path).read().splitlines()
+        else:
+            self.data = [""]
 
     def analyser(self):
         if self.last_key_pressed == curses.KEY_UP:
@@ -147,6 +152,10 @@ class Editor:
         elif self.last_key_pressed == CTRL_X:
             import sys
             sys.exit(0)
+        elif self.last_key_pressed == ALT_LEFT:
+            self.previous_tab()
+        elif self.last_key_pressed == ALT_RIGHT:
+            self.next_tab()
 
     def empty_number_toolbar(self):
         y, x = self.origin_y, self.origin_x-self.number_toolbar_width+1
@@ -221,6 +230,8 @@ class Editor:
         self.exit = True
 
     def display(self):
+        self.empty_canvas()
+        self.empty_number_toolbar()
         rectangle(self.std_scr,self.origin_y-1,self.origin_x-self.number_toolbar_width-1,
                   self.height-1,self.width-2)
         self.std_scr.refresh()
@@ -230,11 +241,24 @@ class Editor:
             self.update_existing_data()
             self.update_number_toolbar()
 
-    def set_exit(self,exit):
+    def set_exit(self, exit):
         self.exit = exit
 
     def __len__(self):
-        return len(self.file_name)
+        return len(self.file_path)
 
     def get_file_name(self):
-        return self.file_name
+        return str(self.file_path)
+
+    def next_tab(self):
+        self.navigator.context["Manager"].right()
+        self.exit = True
+        self.navigator.context["Explorer"].get_editor_manager().show_content()
+        self.navigator.context["Manager"].reset_and_display()
+
+
+    def previous_tab(self):
+        self.navigator.context["Manager"].left()
+        self.exit = True
+        self.navigator.context["Explorer"].get_editor_manager().show_content()
+        self.navigator.context["Manager"].reset_and_display()

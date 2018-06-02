@@ -35,10 +35,11 @@ class Explorer:
 
     def display(self):
         for state in self.all_states:
-            if self.current_state == state:
-                self.all_states[state].update_global_status(True)
-            else:
-                self.all_states[state].update_global_status(False)
+            if self.is_global_state:
+                if self.current_state == state:
+                    self.all_states[state].update_global_status(True)
+                else:
+                    self.all_states[state].update_global_status(False)
             self.all_states[state].display()
 
     def update_global_status(self,status):
@@ -48,3 +49,6 @@ class Explorer:
         self.navigator = navigator
         for state in self.all_states:
             self.all_states[state].set_navigator(navigator)
+
+    def get_editor_manager(self):
+        return self.all_states[0]
