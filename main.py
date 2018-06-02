@@ -12,7 +12,7 @@ CTRL_X = 24
 
 def main(std_scr):
     last_key_pressed = 0
-    files = ["Untitled.txt","Fuckall.py","MainTHisIsGonnaBeLongAF.py"]
+    files = ["Untitled.txt","Untitled(1).txt","Untitled(2).txt"]
     context = {"Menu": Menu(std_scr),"Explorer": Explorer(std_scr),"Manager": Manager(std_scr,files)}
     navigator = Termineditor(std_scr=std_scr,context=context,current_state=context["Manager"])
 
