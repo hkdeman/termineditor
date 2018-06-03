@@ -1,10 +1,11 @@
 class Termineditor:
-    def __init__(self,std_scr,context,current_state):
+    def __init__(self,std_scr,context, current_state, curses):
         self.std_scr = std_scr
         height, width = self.std_scr.getmaxyx()
         self.height = height
         self.width = width
         self.context = context
+        self.curses = curses
         self.current_state = current_state
         self.context["Manager"].set_navigator(self)
         self.context["Explorer"].set_navigator(self)
@@ -46,3 +47,6 @@ class Termineditor:
 
     def set_last_came_from(self,last_came_from):
         self.last_came_from = last_came_from
+
+    def get_curses(self):
+        return self.curses

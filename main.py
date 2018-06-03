@@ -20,7 +20,7 @@ def main(std_scr):
         # could add a welcome page
         files.extend(["Untitled.txt"])
     context = {"Menu": Menu(std_scr),"Explorer": Explorer(std_scr),"Manager": Manager(std_scr, files)}
-    navigator = Termineditor(std_scr=std_scr,context=context,current_state=context["Manager"])
+    navigator = Termineditor(std_scr=std_scr,context=context,current_state=context["Manager"], curses=curses)
 
     while last_key_pressed!=CTRL_X:
         std_scr.clear()
